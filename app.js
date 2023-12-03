@@ -29,7 +29,8 @@ app.use(
 app.use("/swagger", swaggerUI.serve, swaggerUI.setup(apiSpecification));
 
 // rout 200 api
-app.use("/avatars", express.static(path.join(__dirname, "public", "avatars")));
+// app.use("/avatars", express.static(path.join(__dirname, "public", "avatars")));
+app.use( express.static("public"));
 
 app.use("/", routes());
 
