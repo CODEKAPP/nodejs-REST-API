@@ -1,10 +1,22 @@
 // controllers\contacts.js
 const service = require("../services/contacts");
 
-const listContacts = async (req, res) => {
+const getContactOwner = async (req, res) => {
   try {
-    // console.log(req.query);
-    const { success, result, message } = await service.listContacts();
+    const owner = req.user.Id;
+    const { skip, limit, favorite } = req.query;
+
+    const query = { owner };
+    if (favorite !== undefined) {
+      query.favorite = favorite;
+    }
+
+    const { success, result, message } = await service.getContactOwner(
+      query,
+      skip,
+      limit
+    );
+
     if (!success) {
       return res.status(400).json({
         result,
@@ -24,11 +36,16 @@ const listContacts = async (req, res) => {
   }
 };
 
-const getContactById = async (req, res) => {
+const getContactOwnerById = async (req, res) => {
   try {
-    console.log(req.params.id);
-    const id = req.params.id;
-    const { success, result, message } = await service.getContactById(id);
+    const owner = req.user.Id;
+    const { id } = req.params;
+
+    const { success, result, message } = await service.getContactOwnerById(
+      id,
+      owner
+    );
+
     if (!success) {
       return res.status(400).json({
         result,
@@ -50,61 +67,10 @@ const getContactById = async (req, res) => {
 
 const removeContact = async (req, res) => {
   try {
-    console.log(req.params.id);
-    const id = req.params.id;
-    const { success, result, message } = await service.removeContact(id);
-    if (!success) {
-      return res.status(400).json({
-        result,
-        message,
-      });
-    }
-
-    return res.status(200).json({
-      result,
-      message,
-    });
-  } catch (error) {
-    return res.status(500).json({
-      result: null,
-      message: error,
-    });
-  }
-};
-
-const addContact = async (req, res) => {
-  try {
-    const { success, result, message } = await service.addContact(req.body);
-    console.log(result);
-
-    if (!success) {
-      return res.status(400).json({
-        result,
-        message,
-      });
-    }
-
-    return res.status(201).json({
-      result,
-      message,
-    });
-  } catch (error) {
-    return res.status(500).json({
-      result: null,
-      message: error,
-    });
-  }
-};
-
-const updateContact = async (req, res) => {
-  try {
+    const owner = req.user.Id;
     const { id } = req.params;
 
-    const { success, result, message } = await service.updateContact(
-      id,
-      req.body
-    );
-    console.log(result);
+    const { success, result, message } = await service.removeContact(id, owner);
 
     if (!success) {
       return res.status(400).json({
@@ -125,17 +91,17 @@ const updateContact = async (req, res) => {
   }
 };
 
-const updateStatusContact = async (req, res) => {
+const updateFavoriteContact = async (req, res) => {
   try {
-    const { contactId } = req.params;
+    const owner = req.user.Id;
+    const { id } = req.params;
     const { favorite } = req.body;
 
-    const { success, result, message } = await service.updateStatusContact(
-      contactId,
-      favorite
+    const { success, result, message } = await service.updateFavoriteContact(
+      id,
+      favorite,
+      owner
     );
-
-    console.log(result);
 
     if (favorite === undefined) {
       return res.status(400).json({
@@ -163,11 +129,92 @@ const updateStatusContact = async (req, res) => {
   }
 };
 
+// contact
+const listContacts = async (req, res) => {
+  try {
+    // console.log(req.query);
+    const { success, result, message } = await service.listContacts();
+
+    if (!success) {
+      return res.status(400).json({
+        result,
+        message,
+      });
+    }
+
+    return res.status(200).json({
+      result,
+      message,
+    });
+  } catch (error) {
+    return res.status(500).json({
+      result: null,
+      message: error,
+    });
+  }
+};
+// pend
+const getContactById = async (req, res) => {
+  try {
+    // console.log(req.params.id);
+    const id = req.params.id;
+    const { success, result, message } = await service.getContactById(id);
+
+    if (!success) {
+      return res.status(400).json({
+        result,
+        message,
+      });
+    }
+
+    return res.status(200).json({
+      result,
+      message,
+    });
+  } catch (error) {
+    return res.status(500).json({
+      result: null,
+      message: error,
+    });
+  }
+};
+// pend
+
+const addContact = async (req, res) => {
+  try {
+    const body = req.body;
+    body.owner = req.user.Id;
+
+    const { success, result, message } = await service.addContact(body);
+    // console.log(result);
+
+    if (!success) {
+      return res.status(400).json({
+        result,
+        message,
+      });
+    }
+
+    return res.status(201).json({
+      result,
+      message,
+    });
+  } catch (error) {
+    return res.status(500).json({
+      result: null,
+      message: error,
+    });
+  }
+};
+
 module.exports = {
+  // contact
   listContacts,
   getContactById,
-  removeContact,
   addContact,
-  updateContact,
-  updateStatusContact,
+  // User
+  getContactOwner,
+  getContactOwnerById,
+  removeContact,
+  updateFavoriteContact,
 };
